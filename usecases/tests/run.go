@@ -115,12 +115,12 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 	tID := testID(runtime, k)
 	testDir := path.Join(wd, "results", tID)
 
-	err = os.MkdirAll(testDir, 666)
+	err = os.MkdirAll(testDir, 0644)
 	if err != err {
 		return result, err
 	}
 
-	fmt.Println("Cd to ", testDir)
+	fmt.Println("[golang-sh]$ # Exec test in :", testDir)
 	err = os.Chdir(testDir)
 	if err != nil {
 		return result, err
