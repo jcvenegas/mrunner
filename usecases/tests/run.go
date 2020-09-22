@@ -73,6 +73,32 @@ func genKataHypervisorConfigCombinations(h HypervisorConfigs) ([]kata.Hypervisor
 
 }
 
+func testID(runtime kata.DockerRuntime, k kata.Config) string {
+
+	virtiofsArgsId := strings.Replace(k.Hypervisor.VirtiofsdArgs, " ", "", 0)
+	virtiofsArgsId = strings.Replace(virtiofsArgsId, "-", "", 0)
+	if virtiofsArgsId == "" {
+		virtiofsArgsId = "no-args"
+	}
+
+	kernelName := "defaultKernel"
+	if k.Hypervisor.KernelPath != "" {
+		kernelName = path.Base(k.Hypervisor.KernelPath)
+
+	}
+
+	idArgs := []string{
+		string(runtime.RuntimeType),
+		k.Hypervisor.CacheType,
+		strconv.Itoa(k.Hypervisor.CacheSize),
+		virtiofsArgsId,
+		kernelName,
+	}
+
+	return strings.Join(idArgs, "-")
+
+}
+
 func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.TestsResult, error) {
 	result := mtests.TestsResult{}
 
@@ -80,18 +106,9 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 	if err != err {
 		return result, err
 	}
-	virtiofsArgsId := strings.Replace(k.Hypervisor.VirtiofsdArgs, " ", "", 0)
-	virtiofsArgsId = strings.Replace(virtiofsArgsId, "-", "", 0)
-	if virtiofsArgsId == "" {
-		virtiofsArgsId = "no-args"
-	}
-	idArgs := []string{
-		string(runtime.RuntimeType),
-		k.Hypervisor.CacheType,
-		strconv.Itoa(k.Hypervisor.CacheSize),
-		virtiofsArgsId,
-	}
-	testDir := path.Join(wd, strings.Join(idArgs, "-"))
+
+	tID := testID(runtime, k)
+	testDir := path.Join(wd, tID)
 
 	err = os.MkdirAll(testDir, 666)
 	if err != err {
