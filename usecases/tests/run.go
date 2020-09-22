@@ -43,7 +43,7 @@ func setupKataConfig(r kata.DockerRuntime, c kata.Config) error {
 	if err != nil {
 		return err
 	}
-	r.SetConfigValue(htype, kernelTomlKey, c.Hypervisor.KernelPath)
+	r.SetConfigValue(htype, kernelTomlKey, strconv.Quote(c.Hypervisor.KernelPath))
 	if err != nil {
 		return err
 	}
