@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path"
 	"time"
 
 	// TODO: Should not import entities
@@ -36,11 +38,18 @@ func main() {
 	fioCmd += " --output-format=json"
 	fioCmd += " --output=/output/fio.json"
 
+	wd, err := os.Getwd()
+
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+	}
+	dockerFilePath := path.Join(wd, "/workloads/fio/dockerfile/Dockerfile")
+
 	t := dtests.DockerTest{
 		Name:           "large-files-4gb",
 		Command:        "",
 		Exec:           fioCmd,
-		DockerFilePath: "./workloads/fio/dockerfile/Dockerfile",
+		DockerFilePath: dockerFilePath,
 		Timeout:        20 * time.Minute,
 	}
 
