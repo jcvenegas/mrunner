@@ -14,8 +14,8 @@ import (
 func main() {
 
 	kc := tests.Configs{
-		Runtimes: []string{"kata-clh"},
-		Hypervisor: tests.HypervisorConfigs{
+		Runtimes: []string{"kata-clh", "kata-qemu"},
+		HypervisorConfigs: tests.HypervisorConfigs{
 			CacheTypes:      []string{"always"},
 			CacheSizesBytes: []int{1024},
 			VirtiofsdArgs:   []string{""},

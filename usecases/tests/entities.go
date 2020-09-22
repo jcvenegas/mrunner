@@ -9,5 +9,5 @@ type HypervisorConfigs struct {
 
 type Configs struct {
 	Runtimes   []string
-	Hypervisor HypervisorConfigs
+	HypervisorConfigs HypervisorConfigs
 }

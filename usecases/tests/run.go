@@ -100,6 +100,29 @@ func testID(runtime kata.DockerRuntime, k kata.Config) string {
 
 }
 
+func saveRuntimeConfig(r kata.DockerRuntime) error {
+	cpath, err := r.ConfigPath()
+	if err != nil {
+		return err
+	}
+
+	err = utils.CopyFile(cpath, "kata-configuration.toml", 0644)
+	if err != nil {
+		return err
+	}
+
+	envStr, err := r.KataEnv()
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile("kata-env.json", []byte(envStr), 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
 func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.TestsResult, error) {
 	result := mtests.TestsResult{}
 
@@ -133,21 +156,7 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 		return result, err
 	}
 
-	cpath, err := runtime.ConfigPath()
-	if err != nil {
-		return result, err
-	}
-
-	err = utils.CopyFile(cpath, "kata-configuration.toml", 0644)
-	if err != nil {
-		return result, err
-	}
-
-	envStr, err := runtime.KataEnv()
-	if err != nil {
-		return result, err
-	}
-	err = ioutil.WriteFile("kata-env.json", []byte(envStr), 0644)
+	err = saveRuntimeConfig(runtime)
 	if err != nil {
 		return result, err
 	}
@@ -211,7 +220,7 @@ func RunTestForKataConfigs(t mtests.Test, k Configs) ([]mtests.TestsResult, erro
 		if err != nil {
 			return rList, err
 		}
-		res, err := runTestsForRuntimeConfig(runtime, t, k.Hypervisor)
+		res, err := runTestsForRuntimeConfig(runtime, t, k.HypervisorConfigs)
 		if err != nil {
 			return rList, err
 		}
