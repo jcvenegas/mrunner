@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"mrunner/entities/kata"
 	mtests "mrunner/entities/tests"
+	"mrunner/utils"
 	"os"
 	"path"
 	"strconv"
@@ -112,7 +113,7 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 	}()
 
 	tID := testID(runtime, k)
-	testDir := path.Join(wd, tID)
+	testDir := path.Join(wd, "results", tID)
 
 	err = os.MkdirAll(testDir, 666)
 	if err != err {
@@ -128,6 +129,16 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 	defer saveResult(result)
 
 	err = setupKataConfig(runtime, k)
+	if err != nil {
+		return result, err
+	}
+
+	cpath, err := runtime.ConfigPath()
+	if err != nil {
+		return result, err
+	}
+
+	err = utils.CopyFile(cpath, "kata-configuration.toml", 0644)
 	if err != nil {
 		return result, err
 	}
