@@ -2,6 +2,8 @@ package kata
 
 import (
 	"fmt"
+	"path"
+
 	"github.com/codeskyblue/go-sh"
 )
 
@@ -103,4 +105,38 @@ func (dr *DockerRuntime) HypervisorConfigKey() (string, error) {
 		return "", fmt.Errorf("Failed to find HypervisorConfigKey for %s", dr.RuntimeType)
 	}
 
+}
+
+func (dr *DockerRuntime) RuntimePath() (string, error) {
+	prefixPath := "/opt/kata/bin/"
+	runtimeBinName := "kata-runtime"
+
+	switch dr.RuntimeType {
+	case KataClh:
+		runtimeBinName = "kata-clh"
+	case KataQemu:
+		runtimeBinName = "kata-qemu"
+	case KataQemuVirtiofs:
+		runtimeBinName = "kata-qemu-virtiofs"
+	default:
+		return "", fmt.Errorf("Failed to find HypervisorConfigKey for %s", dr.RuntimeType)
+	}
+
+	return path.Join(prefixPath, runtimeBinName), nil
+}
+
+func (dr *DockerRuntime) KataEnv() (string, error) {
+	kPath, err := dr.RuntimePath()
+	if err != nil {
+		return "", err
+	}
+	s := sh.NewSession()
+	s.PipeFail = true
+	s.ShowCMD = true
+	outByte, err := s.Command(kPath, "kata-env").Output()
+	if err != nil {
+		return "", err
+	}
+
+	return string(outByte), nil
 }

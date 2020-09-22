@@ -107,6 +107,10 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 		return result, err
 	}
 
+	defer func() {
+		os.Chdir(wd)
+	}()
+
 	tID := testID(runtime, k)
 	testDir := path.Join(wd, tID)
 
@@ -115,22 +119,29 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 		return result, err
 	}
 
+	fmt.Println("Cd to ", testDir)
+	err = os.Chdir(testDir)
+	if err != nil {
+		return result, err
+	}
+
+	defer saveResult(result)
+
 	err = setupKataConfig(runtime, k)
 	if err != nil {
 		return result, err
 	}
 
-	defer func() {
-		os.Chdir(wd)
-	}()
-
-	err = t.Setup()
+	envStr, err := runtime.KataEnv()
+	if err != nil {
+		return result, err
+	}
+	err = ioutil.WriteFile("kata-env.json", []byte(envStr), 0644)
 	if err != nil {
 		return result, err
 	}
 
-	fmt.Println("Cd to ", testDir)
-	err = os.Chdir(testDir)
+	err = t.Setup()
 	if err != nil {
 		return result, err
 	}
@@ -143,21 +154,24 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 		return result, err
 	}
 
-	file, err := json.MarshalIndent(result, "", " ")
-	if err != nil {
-		return result, err
-	}
-
-	err = ioutil.WriteFile("result.json", file, 0644)
-	if err != nil {
-		return result, err
-	}
-
 	err = t.TearDown()
 	if err != nil {
 		return result, err
 	}
 	return result, nil
+}
+
+func saveResult(result mtests.TestsResult) error {
+	file, err := json.MarshalIndent(result, "", " ")
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile("result.json", file, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func runTestsForRuntimeConfig(runtime kata.DockerRuntime, t mtests.Test, h HypervisorConfigs) ([]mtests.TestsResult, error) {
