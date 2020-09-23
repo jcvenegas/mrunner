@@ -74,7 +74,8 @@ func genKataHypervisorConfigCombinations(h HypervisorConfigs) ([]kata.Hypervisor
 
 }
 
-func testID(runtime kata.DockerRuntime, k kata.Config) string {
+func testConfigIDArgs(runtime kata.DockerRuntime, k kata.Config) []string {
+	idArgs := []string{}
 
 	virtiofsArgsId := strings.Replace(k.Hypervisor.VirtiofsdArgs, " ", "", 0)
 	virtiofsArgsId = strings.Replace(virtiofsArgsId, "-", "", 0)
@@ -88,15 +89,22 @@ func testID(runtime kata.DockerRuntime, k kata.Config) string {
 
 	}
 
-	idArgs := []string{
-		string(runtime.RuntimeType),
-		k.Hypervisor.CacheType,
-		strconv.Itoa(k.Hypervisor.CacheSize),
-		virtiofsArgsId,
-		kernelName,
-	}
+	idArgs = append(idArgs, "runtime", string(runtime.RuntimeType))
+	if runtime.RuntimeType == kata.KataQemu {
+		idArgs = append(idArgs, "9pfs")
 
-	return strings.Join(idArgs, "-")
+	} else {
+		virtiofsIDArgs := []string{
+			k.Hypervisor.CacheType,
+			strconv.Itoa(k.Hypervisor.CacheSize),
+			virtiofsArgsId,
+		}
+		idArgs = append(idArgs, "virtiofs", strings.Join(virtiofsIDArgs, "-"))
+
+	}
+	idArgs = append(idArgs, "kernel", kernelName)
+
+	return idArgs
 
 }
 
@@ -135,8 +143,13 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 		os.Chdir(wd)
 	}()
 
-	tID := testID(runtime, k)
-	testDir := path.Join(wd, "results", t.ID(), tID)
+	testDirArgs := []string{
+		wd,
+		"results",
+		t.ID(),
+	}
+	testDirArgs = append(testDirArgs, testConfigIDArgs(runtime, k)...)
+	testDir := path.Join(testDirArgs...)
 
 	err = os.MkdirAll(testDir, 0774)
 	if err != err {
