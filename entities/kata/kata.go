@@ -82,6 +82,7 @@ func (dr *DockerRuntime) SetConfigValue(section string, attr string, value strin
 		return err
 	}
 	cmd := []string{
+		"crudini",
 		"--set",
 		"--existing",
 		configPath,
@@ -90,7 +91,7 @@ func (dr *DockerRuntime) SetConfigValue(section string, attr string, value strin
 		value,
 	}
 
-	return s.Command("crudini", cmd).Run()
+	return s.Command("sudo", cmd).Run()
 }
 
 // This header changes depending the hypervisor

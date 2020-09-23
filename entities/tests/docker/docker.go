@@ -92,6 +92,9 @@ func (d *DockerTest) TearDown() error {
 	}
 	return nil
 }
+func (d *DockerTest) ID() string {
+	return d.Name
+}
 
 func (d *DockerTest) AddVolume(v ContainerVolume) {
 	d.volumes = append(d.volumes, v)

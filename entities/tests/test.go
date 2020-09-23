@@ -24,4 +24,5 @@ type Test interface {
 	Setup() error
 	Run(TestEnv) (TestsResult, error)
 	TearDown() error
+	ID() string
 }
