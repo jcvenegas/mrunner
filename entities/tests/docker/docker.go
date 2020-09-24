@@ -37,7 +37,7 @@ func (d *DockerTest) Setup() error {
 
 func (d *DockerTest) Run(e tests.TestEnv) (tests.TestsResult, error) {
 	result := tests.TestsResult{TestID: d.Name}
-	fmt.Println("Running test")
+	fmt.Println("Running test:", result.TestID)
 	s := sh.NewSession()
 	s.PipeFail = true
 	s.ShowCMD = true

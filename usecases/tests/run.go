@@ -162,7 +162,7 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 		return result, err
 	}
 
-	defer saveResult(result)
+	defer saveResult(&result)
 
 	err = setupKataConfig(runtime, k)
 	if err != nil {
@@ -194,7 +194,7 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 	return result, nil
 }
 
-func saveResult(result mtests.TestsResult) error {
+func saveResult(result *mtests.TestsResult) error {
 	file, err := json.MarshalIndent(result, "", " ")
 	if err != nil {
 		return err
