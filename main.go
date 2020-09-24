@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
+	"path/filepath"
 	"time"
 
 	// TODO: Should not import entities
@@ -27,6 +29,13 @@ type TestFile struct {
 	ContainerWorkload ContainerWorkload
 }
 
+func ExitOnError(cause string, err error) {
+	if err != nil {
+		fmt.Printf("Error: %s %s\n", cause, err)
+		os.Exit(1)
+	}
+}
+
 func main() {
 
 	if len(os.Args) < 2 {
@@ -35,24 +44,28 @@ func main() {
 	}
 	yamlFile := os.Args[1]
 	dat, err := ioutil.ReadFile(yamlFile)
-	if err != nil {
-		fmt.Printf("Error: %s\n", err)
-		os.Exit(1)
-	}
+	ExitOnError("Failed to read yaml file:", err)
+
+	yamlFileDir := path.Dir(yamlFile)
+	yamlFileDir, err = filepath.Abs(yamlFileDir)
+	ExitOnError("Failed to find abs dir for yaml file", err)
 
 	testFile := TestFile{}
+	ExitOnError("", err)
 
 	err = yaml.Unmarshal(dat, &testFile)
-	if err != nil {
-		fmt.Printf("Error: %s\n", err)
-		os.Exit(1)
+	ExitOnError("Failed to load yaml file data", err)
+
+	dfilePath := testFile.ContainerWorkload.DockerFilePath
+	if !path.IsAbs(dfilePath) {
+		dfilePath = path.Join(yamlFileDir, dfilePath)
 	}
 
 	t := dtests.DockerTest{
 		Name:           testFile.ContainerWorkload.Name,
 		Command:        testFile.ContainerWorkload.Command,
 		Exec:           testFile.ContainerWorkload.Exec,
-		DockerFilePath: testFile.ContainerWorkload.DockerFilePath,
+		DockerFilePath: dfilePath,
 		Timeout:        time.Duration(testFile.ContainerWorkload.TimeoutMinutes) * time.Minute,
 	}
 

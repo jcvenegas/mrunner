@@ -16,5 +16,5 @@ containerworkload:
   name: large-files-4gb
   command: ""
   exec: fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=10M --readwrite=randrw --rwmixread=75 --output-format=json --output=/output/fio.json
-  dockerfilepath: /home/jcvenega/go/src/github.com/kata-containers/tests/metrics/mrunner/workloads/fio/dockerfile/Dockerfile
+  dockerfilepath: dockerfile/Dockerfile
   timeoutminutes: 10
