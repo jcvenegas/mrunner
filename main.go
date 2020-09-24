@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"time"
 
 	// TODO: Should not import entities
@@ -30,50 +29,20 @@ type TestFile struct {
 
 func main() {
 
-	fioCmd := "fio"
-	fioCmd += " --direct=1"
-	fioCmd += " --gtod_reduce=1"
-	fioCmd += " --name=test"
-	fioCmd += " --filename=random_read_write.fio"
-	fioCmd += " --bs=4k"
-	fioCmd += " --iodepth=64"
-	fioCmd += " --size=10M"
-	fioCmd += " --readwrite=randrw"
-	fioCmd += " --rwmixread=75"
-	fioCmd += " --output-format=json"
-	fioCmd += " --output=/output/fio.json"
-
-	wd, err := os.Getwd()
-
+	if len(os.Args) < 2 {
+		fmt.Println("Missing yaml file")
+		os.Exit(1)
+	}
+	yamlFile := os.Args[1]
+	dat, err := ioutil.ReadFile(yamlFile)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err)
 		os.Exit(1)
 	}
-	dockerFilePath := path.Join(wd, "/workloads/fio/dockerfile/Dockerfile")
 
-	testFile := TestFile{
-		ContainerEngine: "docker",
-		RuntimeConfigs: tests.Configs{
-			Runtimes: []string{"kata-clh", "kata-qemu"},
-			HypervisorConfigs: tests.HypervisorConfigs{
-				CacheTypes:      []string{"always"},
-				CacheSizesBytes: []int{1024},
-				VirtiofsdArgs:   []string{""},
-				KernelPaths: []string{
-					"/opt/kata/share/kata-containers/vmlinux-kata-v5.6-april-09-2020-88-virtiofs",
-				},
-			},
-		},
-		ContainerWorkload: ContainerWorkload{
-			Name:           "large-files-4gb",
-			Command:        "",
-			Exec:           fioCmd,
-			DockerFilePath: dockerFilePath,
-			TimeoutMinutes: 10,
-		},
-	}
-	d, err := yaml.Marshal(&testFile)
-	err = ioutil.WriteFile("workloads.yaml", d, 0644)
+	testFile := TestFile{}
+
+	err = yaml.Unmarshal(dat, &testFile)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err)
 		os.Exit(1)
