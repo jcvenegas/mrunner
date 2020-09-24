@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/codeskyblue/go-sh"
 )
 
 const (
@@ -131,6 +133,69 @@ func saveRuntimeConfig(r kata.DockerRuntime) error {
 
 }
 
+func saveHypervisorCmd(runtime kata.DockerRuntime) error {
+	s := sh.NewSession()
+	s.ShowCMD = true
+	hypervisorRegex := ""
+
+	switch runtime.RuntimeType {
+	case kata.KataClh:
+		hypervisorRegex = "[c]loud-hypervisor"
+	case kata.KataQemu, kata.KataQemuVirtiofs:
+		hypervisorRegex = "[q]emu-"
+
+	}
+
+	if hypervisorRegex == "" {
+		return fmt.Errorf("No hypervisorRegex for %s", runtime.RuntimeType)
+	}
+
+	out, err := s.Command("ps", "aux").Command("grep", hypervisorRegex).Output()
+	if err != nil {
+		return err
+	}
+	if len(out) == 0 {
+		return fmt.Errorf("No hypervisor process found: %s", hypervisorRegex)
+	}
+	err = ioutil.WriteFile("hypervisor-cmd", out, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func saveVirtiofsdCmd(runtime kata.DockerRuntime) error {
+	s := sh.NewSession()
+	s.ShowCMD = true
+	virtiofsdRegex := "[v]irtiofsd"
+
+	switch runtime.RuntimeType {
+	case kata.KataClh, kata.KataQemuVirtiofs:
+	default:
+		fmt.Printf("runtime %s has not virtiofsd\n", runtime.RuntimeType)
+		return nil
+	}
+
+	out, err := s.Command("ps", "aux").Command("grep", virtiofsdRegex).Output()
+	if err != nil {
+		return err
+	}
+
+	if len(out) == 0 {
+		return fmt.Errorf("No virtiofsd process found: %s", virtiofsdRegex)
+	}
+
+	err = ioutil.WriteFile("virtiofsd-cmd", out, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.TestsResult, error) {
 	result := mtests.TestsResult{}
 
@@ -183,6 +248,15 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 	result, err = t.Run(mtests.TestEnv{WorkDir: testDir, Runtime: string(runtime.RuntimeType)})
 	elapsed := time.Since(start)
 	result.Duration = elapsed
+	if err != nil {
+		return result, err
+	}
+
+	err = saveHypervisorCmd(runtime)
+	if err != nil {
+		return result, err
+	}
+	err = saveVirtiofsdCmd(runtime)
 	if err != nil {
 		return result, err
 	}
