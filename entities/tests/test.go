@@ -6,6 +6,7 @@ import (
 
 type TestEnv struct {
 	WorkDir string
+	Runtime string
 }
 
 type TestsResult struct {

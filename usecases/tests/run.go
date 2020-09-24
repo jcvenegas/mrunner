@@ -180,7 +180,7 @@ func runTest(runtime kata.DockerRuntime, k kata.Config, t mtests.Test) (mtests.T
 	}
 
 	start := time.Now()
-	result, err = t.Run(mtests.TestEnv{WorkDir: testDir})
+	result, err = t.Run(mtests.TestEnv{WorkDir: testDir, Runtime: string(runtime.RuntimeType)})
 	elapsed := time.Since(start)
 	result.Duration = elapsed
 	if err != nil {

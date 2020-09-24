@@ -46,6 +46,7 @@ func (d *DockerTest) Run(e tests.TestEnv) (tests.TestsResult, error) {
 	dockerArgs := []string{}
 	dockerArgs = append(dockerArgs, "run")
 	dockerArgs = append(dockerArgs, "-dti")
+	dockerArgs = append(dockerArgs, "--runtime", e.Runtime)
 
 	for _, v := range d.volumes {
 		dockerArgs = append(dockerArgs, "-v")

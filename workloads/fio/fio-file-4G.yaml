@@ -1,20 +1,20 @@
 containerengine: docker
 runtimeconfigs:
   runtimes:
-  - kata-clh
+  - kata-qemu-virtiofs
   - kata-qemu
   hypervisorconfigs:
     cachetypes:
-    - always
+    - auto
     cachesizesbytes:
-    - 1024
+    - 0
     virtiofsdargs:
     - ""
     kernelpaths:
-    - /opt/kata/share/kata-containers/vmlinux-kata-v5.6-april-09-2020-88-virtiofs
+    - /opt/kata/share/kata-containers/vmlinux.container
 containerworkload:
   name: large-files-4gb
   command: ""
-  exec: fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=10M --readwrite=randrw --rwmixread=75 --output-format=json --output=/output/fio.json
+  exec: fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=4G --readwrite=randrw --rwmixread=75 --output-format=json --output=/output/fio.json
   dockerfilepath: dockerfile/Dockerfile
-  timeoutminutes: 10
+  timeoutminutes: 25
