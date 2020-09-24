@@ -4,8 +4,12 @@
 ```bash
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
-
 ```
+
+## Install other deps
+- git to clone
+- make to use makefile
+- crudini is a dependency for the tool
 
 ## Install kata (using kata-deploy)
 
