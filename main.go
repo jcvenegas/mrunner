@@ -93,6 +93,7 @@ func createTemplate() error {
 		Command:        "bash",
 		Exec:           "sh -c 'echo hello'",
 		DockerFilePath: dockerfileName,
+		TimeoutMinutes: 10,
 	}
 
 	tf.RuntimeConfigs = tests.Configs{
