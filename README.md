@@ -23,16 +23,16 @@ docker info | grep Runtimes
 git clone https://github.com/jcvenegas/mrunner.git
 go build
 # Use sudo if your user has not permissiones to use docker client.
-./mrunner ./workloads/fio/fio-file-4G.yaml
+./mrunner run ./workloads/fio/fio-file-4G.yaml
 ```
 ## Want to try with bash the tests?
 Get the list of commands that are executed in the test.
 ```bash
-./mrunner ./workloads/fio/fio-file-4G.yaml 2>&1 | grep 'golang-sh' --color | awk '!($1="")'
+./mrunner run ./workloads/fio/fio-file-4G.yaml 2>&1 | grep 'golang-sh' --color | awk '!($1="")'
 ```
 Example:
 ```bash
-./mrunner ./workloads/fio/fio-file-4G.yaml 2>&1 | grep 'golang-sh' --color | awk '!($1="")'
+./mrunner run ./workloads/fio/fio-file-4G.yaml 2>&1 | grep 'golang-sh' --color | awk '!($1="")'
  # Running workload in : /home/jcvenega/go/src/github.com/kata-containers/tests/metrics/mrunner/results/large-files-4gb/kata-clh-always-1024-no-args-vmlinux-kata-v5.6-april-09-2020-88-virtiofs
  sudo crudini --set --existing /opt/kata/share/defaults/kata-containers/configuration-clh.toml hypervisor.clh virtio_fs_cache "always"
  sudo crudini --set --existing /opt/kata/share/defaults/kata-containers/configuration-clh.toml hypervisor.clh virtio_fs_cache_size 1024
