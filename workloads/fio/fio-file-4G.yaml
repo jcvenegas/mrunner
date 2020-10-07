@@ -1,8 +1,6 @@
 containerengine: docker
 runtimeconfigs:
-  runtimes:
-  - kata-qemu-virtiofs
-  - kata-qemu
+- runtime: kata-qemu-virtiofs
   hypervisorconfigs:
     cachetypes:
     - auto
@@ -10,6 +8,13 @@ runtimeconfigs:
     - 0
     virtiofsdargs:
     - ""
+    kernelpaths:
+    - /opt/kata/share/kata-containers/vmlinux.container
+- runtime: kata-qemu
+  hypervisorconfigs:
+    cachetypes: []
+    cachesizesbytes: []
+    virtiofsdargs: []
     kernelpaths:
     - /opt/kata/share/kata-containers/vmlinux.container
 containerworkload:
