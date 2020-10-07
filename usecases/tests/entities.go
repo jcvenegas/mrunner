@@ -7,7 +7,7 @@ type HypervisorConfigs struct {
 	KernelPaths     []string
 }
 
-type Configs struct {
-	Runtimes   []string
+type RuntimeConfig struct {
+	Runtime           string
 	HypervisorConfigs HypervisorConfigs
 }

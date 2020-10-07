@@ -56,6 +56,23 @@ func setupKataConfig(r kata.DockerRuntime, c kata.Config) error {
 
 func genKataHypervisorConfigCombinations(h HypervisorConfigs) ([]kata.HypervisorConfig, error) {
 	hList := []kata.HypervisorConfig{}
+
+	if len(h.CacheSizesBytes) == 0 {
+		h.CacheSizesBytes = []int{0}
+	}
+
+	if len(h.CacheTypes) == 0 {
+		h.CacheTypes = []string{""}
+	}
+
+	if len(h.KernelPaths) == 0 {
+		h.KernelPaths = []string{""}
+	}
+
+	if len(h.VirtiofsdArgs) == 0 {
+		h.VirtiofsdArgs = []string{""}
+	}
+
 	for _, c := range h.CacheTypes {
 		for _, s := range h.CacheSizesBytes {
 			for _, k := range h.KernelPaths {
@@ -300,14 +317,14 @@ func runTestsForRuntimeConfig(runtime kata.DockerRuntime, t mtests.Test, h Hyper
 	return rList, nil
 }
 
-func RunTestForKataConfigs(t mtests.Test, k Configs) ([]mtests.TestsResult, error) {
+func RunTestForKataConfigs(t mtests.Test, k []RuntimeConfig) ([]mtests.TestsResult, error) {
 	rList := []mtests.TestsResult{}
-	for _, r := range k.Runtimes {
-		runtime, err := kata.NewDockerRuntime(r)
+	for _, r := range k {
+		runtime, err := kata.NewDockerRuntime(r.Runtime)
 		if err != nil {
 			return rList, err
 		}
-		res, err := runTestsForRuntimeConfig(runtime, t, k.HypervisorConfigs)
+		res, err := runTestsForRuntimeConfig(runtime, t, r.HypervisorConfigs)
 		if err != nil {
 			return rList, err
 		}

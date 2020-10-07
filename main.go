@@ -27,14 +27,14 @@ type ContainerWorkload struct {
 
 type TestFile struct {
 	ContainerEngine   string
-	RuntimeConfigs    tests.Configs
+	RuntimeConfigs    []tests.RuntimeConfig
 	ContainerWorkload ContainerWorkload
 }
 
 func runWorkload(yamlFile string) error {
 	dat, err := ioutil.ReadFile(yamlFile)
 	if err != nil {
-		fmt.Errorf("Failed to read yaml file %w", err)
+		fmt.Errorf("Failed to read yaml file %q %w", yamlFile, err)
 		return err
 	}
 
@@ -96,22 +96,30 @@ func createTemplate() error {
 		TimeoutMinutes: 10,
 	}
 
-	tf.RuntimeConfigs = tests.Configs{
-		Runtimes: []string{
-			"kata-qemu",
-			"kata-qemu-virtiofs",
+	tf.RuntimeConfigs = []tests.RuntimeConfig{
+		{
+			Runtime: "kata-qemu-virtiofs",
+			HypervisorConfigs: tests.HypervisorConfigs{
+				CacheTypes: []string{
+					"auto",
+				},
+				CacheSizesBytes: []int{
+					0,
+				},
+				VirtiofsdArgs: []string{
+					"",
+				},
+				KernelPaths: []string{"/opt/kata/share/kata-containers/vmlinux.container"},
+			},
 		},
-		HypervisorConfigs: tests.HypervisorConfigs{
-			CacheTypes: []string{
-				"auto",
+		{
+			Runtime: "kata-qemu",
+			HypervisorConfigs: tests.HypervisorConfigs{
+				KernelPaths: []string{"/opt/kata/share/kata-containers/vmlinux.container"},
 			},
-			CacheSizesBytes: []int{
-				0,
-			},
-			VirtiofsdArgs: []string{
-				"",
-			},
-			KernelPaths: []string{"/opt/kata/share/kata-containers/vmlinux.container"},
+		},
+		{
+			Runtime: "runc",
 		},
 	}
 
