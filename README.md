@@ -11,12 +11,16 @@ sh get-docker.sh
 - make to use makefile
 - crudini is a dependency for the tool
 
+Or
+
+```bash
+./scripts/setup-ubuntu.sh
+``````
+
 ## Install kata (using kata-deploy)
 
 ```bash
-kata_version="1.12.0-alpha1"
-docker run -v /opt/kata:/opt/kata -v /var/run/dbus:/var/run/dbus -v /run/systemd:/run/systemd -v /etc/docker:/etc/docker -it katadocker/kata-deploy:"${kata_version}" kata-deploy-docker install
-docker info | grep Runtimes
+./scripts/setup-ubuntu.sh
 ```
 
 ```bash
