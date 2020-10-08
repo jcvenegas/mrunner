@@ -1,4 +1,4 @@
-package kata
+package runtime
 
 import (
 	"fmt"
@@ -44,12 +44,13 @@ const (
 	KataClh          DockerRuntimeType = "kata-clh"
 	KataQemu                           = "kata-qemu"
 	KataQemuVirtiofs                   = "kata-qemu-virtiofs"
+	Runc                               = "runc"
 )
 
 func NewDockerRuntime(runtime string) (DockerRuntime, error) {
 	RuntimeType := DockerRuntimeType(runtime)
 	switch RuntimeType {
-	case KataClh, KataQemu, KataQemuVirtiofs:
+	case KataClh, KataQemu, KataQemuVirtiofs, Runc:
 		return DockerRuntime{RuntimeType: RuntimeType}, nil
 	}
 	return DockerRuntime{}, fmt.Errorf("Uknown runtime config: %s", runtime)

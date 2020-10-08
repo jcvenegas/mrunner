@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mrunner/entities/tests"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/codeskyblue/go-sh"
@@ -66,6 +67,10 @@ func (d *DockerTest) Run(e tests.TestEnv) (tests.TestsResult, error) {
 	dockerArgs = append(dockerArgs, "--name")
 	dockerArgs = append(dockerArgs, d.Name)
 	dockerArgs = append(dockerArgs, d.Name)
+	if d.Command != "" {
+		c := strings.Fields(d.Command)
+		dockerArgs = append(dockerArgs, c...)
+	}
 
 	err := s.Command("docker", dockerArgs).Run()
 	if err != nil {
@@ -73,7 +78,12 @@ func (d *DockerTest) Run(e tests.TestEnv) (tests.TestsResult, error) {
 	}
 
 	if d.Exec != "" {
-		err = s.Command("docker", "exec", "-i", d.Name, "sh", "-c", d.Exec).SetTimeout(d.Timeout).Run()
+		dockerArgs = []string{}
+		dockerArgs = append(dockerArgs, "exec")
+		dockerArgs = append(dockerArgs, "-i")
+		dockerArgs = append(dockerArgs, d.Name)
+		dockerArgs = append(dockerArgs, strings.Fields(d.Exec)...)
+		err = s.Command("docker", dockerArgs).SetTimeout(d.Timeout).Run()
 		if err != nil {
 			result.SetError(err)
 		}

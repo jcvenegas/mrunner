@@ -90,8 +90,8 @@ func createTemplate() error {
 
 	tf.ContainerWorkload = ContainerWorkload{
 		Name:           "example",
-		Command:        "bash",
-		Exec:           "sh -c 'echo hello'",
+		Command:        "sleep infinity",
+		Exec:           "echo hello",
 		DockerFilePath: dockerfileName,
 		TimeoutMinutes: 10,
 	}
