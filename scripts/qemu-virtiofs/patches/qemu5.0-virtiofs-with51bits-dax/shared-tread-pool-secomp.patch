@@ -1,0 +1,11 @@
+--- qemu.orig/tools/virtiofsd/seccomp.c 2020-09-16 20:21:13.168686176 +0200
++++ qemu/tools/virtiofsd/seccomp.c 2020-09-22 14:01:38.499164501 +0200
+@@ -94,6 +94,8 @@ static const int syscall_whitelist[] = {
+     SCMP_SYS(rt_sigaction),
+     SCMP_SYS(rt_sigprocmask),
+     SCMP_SYS(rt_sigreturn),
++    SCMP_SYS(sched_getattr),
++    SCMP_SYS(sched_setattr),
+     SCMP_SYS(sendmsg),
+     SCMP_SYS(setresgid),
+     SCMP_SYS(setresuid),

@@ -1,0 +1,34 @@
+glib offers thread pools and it seems to support "exclusive" and "shared"
+thread pools.
+
+https://developer.gnome.org/glib/stable/glib-Thread-Pools.html#g-thread-pool-new
+
+Currently we use "exlusive" thread pools but its performance seems to be
+poor. I tried using "shared" thread pools and performance seems much
+better. I posted performance results here.
+
+https://www.redhat.com/archives/virtio-fs/2020-September/msg00080.html
+
+So lets switch to shared thread pools. We can think of making it optional
+once somebody can show in what cases exclusive thread pools offer better
+results. For now, my simple performance tests across the board see
+better results with shared thread pools.
+
+Signed-off-by: Vivek Goyal <vgoyal redhat com>
+---
+ tools/virtiofsd/fuse_virtio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: qemu/tools/virtiofsd/fuse_virtio.c
+===================================================================
+--- qemu.orig/tools/virtiofsd/fuse_virtio.c	2020-09-21 17:28:27.444438015 -0400
++++ qemu/tools/virtiofsd/fuse_virtio.c	2020-09-21 17:28:30.584568910 -0400
+@@ -695,7 +695,7 @@ static void *fv_queue_thread(void *opaqu
+     struct fuse_session *se = qi->virtio_dev->se;
+     GThreadPool *pool;
+ 
+-    pool = g_thread_pool_new(fv_queue_worker, qi, se->thread_pool_size, TRUE,
++    pool = g_thread_pool_new(fv_queue_worker, qi, se->thread_pool_size, FALSE,
+                              NULL);
+     if (!pool) {
+         fuse_log(FUSE_LOG_ERR, "%s: g_thread_pool_new failed\n", __func__);
