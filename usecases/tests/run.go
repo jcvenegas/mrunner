@@ -2,6 +2,7 @@ package tests
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	runtime "mrunner/entities/runtime"
@@ -35,18 +36,19 @@ func setupKataConfig(r runtime.DockerRuntime, c runtime.Config) error {
 		return err
 	}
 
-	r.SetConfigValue(htype, virtiofsCacheSizeTomlKey, strconv.Itoa(c.Hypervisor.CacheSize))
+	err = r.SetConfigValue(htype, virtiofsCacheSizeTomlKey, strconv.Itoa(c.Hypervisor.CacheSize))
 	if err != nil {
 		return err
 	}
 
 	args := stringToTomlList(c.Hypervisor.VirtiofsdArgs)
 
-	r.SetConfigValue(htype, virtiofsdArgsTomlKey, args)
+	err = r.SetConfigValue(htype, virtiofsdArgsTomlKey, args)
 	if err != nil {
 		return err
 	}
-	r.SetConfigValue(htype, kernelTomlKey, strconv.Quote(c.Hypervisor.KernelPath))
+
+	err = r.SetConfigValue(htype, kernelTomlKey, strconv.Quote(c.Hypervisor.KernelPath))
 	if err != nil {
 		return err
 	}
@@ -54,8 +56,11 @@ func setupKataConfig(r runtime.DockerRuntime, c runtime.Config) error {
 	return nil
 }
 
-func genKataHypervisorConfigCombinations(h HypervisorConfigs) ([]runtime.HypervisorConfig, error) {
+func genKataHypervisorConfigCombinations(h *HypervisorConfigs) ([]runtime.HypervisorConfig, error) {
 	hList := []runtime.HypervisorConfig{}
+	if h == nil {
+		return hList, errors.New("hypervisor config is nil")
+	}
 
 	if len(h.CacheSizesBytes) == 0 {
 		h.CacheSizesBytes = []int{0}
@@ -90,46 +95,40 @@ func genKataHypervisorConfigCombinations(h HypervisorConfigs) ([]runtime.Hypervi
 		}
 	}
 	return hList, nil
-
 }
 
 func testConfigIDArgs(r runtime.DockerRuntime, k runtime.Config) []string {
-
 	idArgs := []string{}
 
 	if r.RuntimeType == runtime.Runc {
 		return append(idArgs, "runc")
 	}
 
-	virtiofsArgsId := strings.Replace(k.Hypervisor.VirtiofsdArgs, " ", "", 0)
-	virtiofsArgsId = strings.Replace(virtiofsArgsId, "-", "", 0)
-	if virtiofsArgsId == "" {
-		virtiofsArgsId = "no-args"
+	virtiofsArgsID := strings.Replace(k.Hypervisor.VirtiofsdArgs, " ", "", -1)
+	virtiofsArgsID = strings.Replace(virtiofsArgsID, "-", "", -1)
+	if virtiofsArgsID == "" {
+		virtiofsArgsID = "no-args"
 	}
 
 	kernelName := "defaultKernel"
 	if k.Hypervisor.KernelPath != "" {
 		kernelName = path.Base(k.Hypervisor.KernelPath)
-
 	}
 
 	idArgs = append(idArgs, "runtime", string(r.RuntimeType))
 	if r.RuntimeType == runtime.KataQemu {
 		idArgs = append(idArgs, "9pfs")
-
 	} else {
 		virtiofsIDArgs := []string{
 			k.Hypervisor.CacheType,
 			strconv.Itoa(k.Hypervisor.CacheSize),
-			virtiofsArgsId,
+			virtiofsArgsID,
 		}
 		idArgs = append(idArgs, "virtiofs", strings.Join(virtiofsIDArgs, "-"))
-
 	}
 	idArgs = append(idArgs, "kernel", kernelName)
 
 	return idArgs
-
 }
 
 func saveKataRuntimeConfig(r runtime.DockerRuntime) error {
@@ -147,12 +146,11 @@ func saveKataRuntimeConfig(r runtime.DockerRuntime) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile("runtime-env.json", []byte(envStr), 0644)
+	err = ioutil.WriteFile("runtime-env.json", []byte(envStr), 0600)
 	if err != nil {
 		return err
 	}
 	return nil
-
 }
 
 func saveHypervisorCmd(r runtime.DockerRuntime) error {
@@ -165,11 +163,15 @@ func saveHypervisorCmd(r runtime.DockerRuntime) error {
 		hypervisorRegex = "[c]loud-hypervisor"
 	case runtime.KataQemu, runtime.KataQemuVirtiofs:
 		hypervisorRegex = "[q]emu-"
-
+	case runtime.Runc:
+		// Runc does not have command to save
+		return nil
+	default:
+		return fmt.Errorf("runtime %s does not have command configured", r.RuntimeType)
 	}
 
 	if hypervisorRegex == "" {
-		return fmt.Errorf("No hypervisorRegex for %s", r.RuntimeType)
+		return fmt.Errorf("no hypervisorRegex for %s", r.RuntimeType)
 	}
 
 	out, err := s.Command("ps", "aux").Command("grep", hypervisorRegex).Output()
@@ -177,15 +179,14 @@ func saveHypervisorCmd(r runtime.DockerRuntime) error {
 		return err
 	}
 	if len(out) == 0 {
-		return fmt.Errorf("No hypervisor process found: %s", hypervisorRegex)
+		return fmt.Errorf("no hypervisor process found: %s", hypervisorRegex)
 	}
-	err = ioutil.WriteFile("hypervisor-cmd", out, 0644)
+	err = ioutil.WriteFile("hypervisor-cmd", out, 0600)
 	if err != nil {
 		return err
 	}
 
 	return nil
-
 }
 
 func saveVirtiofsdCmd(r runtime.DockerRuntime) error {
@@ -195,6 +196,7 @@ func saveVirtiofsdCmd(r runtime.DockerRuntime) error {
 
 	switch r.RuntimeType {
 	case runtime.KataClh, runtime.KataQemuVirtiofs:
+	case runtime.Runc, runtime.KataQemu:
 	default:
 		fmt.Printf("runtime %s has not virtiofsd\n", r.RuntimeType)
 		return nil
@@ -206,28 +208,30 @@ func saveVirtiofsdCmd(r runtime.DockerRuntime) error {
 	}
 
 	if len(out) == 0 {
-		return fmt.Errorf("No virtiofsd process found: %s", virtiofsdRegex)
+		return fmt.Errorf("no virtiofsd process found: %s", virtiofsdRegex)
 	}
 
-	err = ioutil.WriteFile("virtiofsd-cmd", out, 0644)
+	err = ioutil.WriteFile("virtiofsd-cmd", out, 0600)
 	if err != nil {
 		return err
 	}
 
 	return nil
-
 }
 
-func runTest(r runtime.DockerRuntime, k runtime.Config, t mtests.Test) (mtests.TestsResult, error) {
-	result := mtests.TestsResult{}
+func runTest(r runtime.DockerRuntime, k runtime.Config, t mtests.Test) (mtests.Result, error) {
+	result := mtests.Result{}
 
 	wd, err := os.Getwd()
-	if err != err {
+	if err != nil {
 		return result, err
 	}
 
 	defer func() {
-		os.Chdir(wd)
+		cherr := os.Chdir(wd)
+		if cherr != nil {
+			fmt.Println("Warn: Failed to chdir to:", wd)
+		}
 	}()
 
 	testDirArgs := []string{
@@ -239,7 +243,7 @@ func runTest(r runtime.DockerRuntime, k runtime.Config, t mtests.Test) (mtests.T
 	testDir := path.Join(testDirArgs...)
 
 	err = os.MkdirAll(testDir, 0774)
-	if err != err {
+	if err != nil {
 		return result, err
 	}
 
@@ -249,7 +253,12 @@ func runTest(r runtime.DockerRuntime, k runtime.Config, t mtests.Test) (mtests.T
 		return result, err
 	}
 
-	defer saveResult(&result)
+	defer func() {
+		e := saveResult(&result)
+		if e != nil {
+			fmt.Println("Warn: failed to save results err=", e)
+		}
+	}()
 
 	if r.RuntimeType != runtime.Runc {
 		err = setupKataConfig(r, k)
@@ -261,7 +270,6 @@ func runTest(r runtime.DockerRuntime, k runtime.Config, t mtests.Test) (mtests.T
 		if err != nil {
 			return result, err
 		}
-
 	}
 	err = t.Setup()
 	if err != nil {
@@ -285,7 +293,6 @@ func runTest(r runtime.DockerRuntime, k runtime.Config, t mtests.Test) (mtests.T
 		if err != nil {
 			return result, err
 		}
-
 	}
 
 	err = t.TearDown()
@@ -295,21 +302,24 @@ func runTest(r runtime.DockerRuntime, k runtime.Config, t mtests.Test) (mtests.T
 	return result, nil
 }
 
-func saveResult(result *mtests.TestsResult) error {
+func saveResult(result *mtests.Result) error {
 	file, err := json.MarshalIndent(result, "", " ")
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile("result.json", file, 0644)
+	err = ioutil.WriteFile("result.json", file, 0600)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func runTestsForRuntimeConfig(r runtime.DockerRuntime, t mtests.Test, h HypervisorConfigs) ([]mtests.TestsResult, error) {
-	rList := []mtests.TestsResult{}
+func runTestsForRuntimeConfig(r runtime.DockerRuntime, t mtests.Test, h *HypervisorConfigs) ([]mtests.Result, error) {
+	rList := []mtests.Result{}
+	if h == nil {
+		return rList, errors.New("hypervisor config is nil")
+	}
 	hConfigs, err := genKataHypervisorConfigCombinations(h)
 	if err != nil {
 		return rList, err
@@ -327,14 +337,14 @@ func runTestsForRuntimeConfig(r runtime.DockerRuntime, t mtests.Test, h Hypervis
 	return rList, nil
 }
 
-func RunTestForKataConfigs(t mtests.Test, k []RuntimeConfig) ([]mtests.TestsResult, error) {
-	rList := []mtests.TestsResult{}
+func RunTestForKataConfigs(t mtests.Test, k []RuntimeConfig) ([]mtests.Result, error) {
+	rList := []mtests.Result{}
 	for _, r := range k {
-		runtime, err := runtime.NewDockerRuntime(r.Runtime)
+		rt, err := runtime.NewDockerRuntime(r.Runtime)
 		if err != nil {
 			return rList, err
 		}
-		res, err := runTestsForRuntimeConfig(runtime, t, r.HypervisorConfigs)
+		res, err := runTestsForRuntimeConfig(rt, t, &r.HypervisorConfigs)
 		if err != nil {
 			return rList, err
 		}

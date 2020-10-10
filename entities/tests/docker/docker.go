@@ -10,7 +10,7 @@ import (
 	"github.com/codeskyblue/go-sh"
 )
 
-type DockerTest struct {
+type Test struct {
 	Name           string
 	Command        string
 	Exec           string
@@ -19,7 +19,7 @@ type DockerTest struct {
 	Timeout        time.Duration
 }
 
-func (d *DockerTest) Setup() error {
+func (d *Test) Setup() error {
 	fmt.Println("Running setup")
 	s := sh.NewSession()
 	s.PipeFail = true
@@ -36,8 +36,8 @@ func (d *DockerTest) Setup() error {
 	return nil
 }
 
-func (d *DockerTest) Run(e tests.TestEnv) (tests.TestsResult, error) {
-	result := tests.TestsResult{TestID: d.Name}
+func (d *Test) Run(e tests.TestEnv) (tests.Result, error) {
+	result := tests.Result{TestID: d.Name}
 	fmt.Println("Running test:", result.TestID)
 	s := sh.NewSession()
 	s.PipeFail = true
@@ -45,9 +45,7 @@ func (d *DockerTest) Run(e tests.TestEnv) (tests.TestsResult, error) {
 	s.SetDir(e.WorkDir)
 
 	dockerArgs := []string{}
-	dockerArgs = append(dockerArgs, "run")
-	dockerArgs = append(dockerArgs, "-dti")
-	dockerArgs = append(dockerArgs, "--runtime", e.Runtime)
+	dockerArgs = append(dockerArgs, "run", "-dti", "--runtime", e.Runtime)
 
 	for _, v := range d.volumes {
 		dockerArgs = append(dockerArgs, "-v")
@@ -64,9 +62,7 @@ func (d *DockerTest) Run(e tests.TestEnv) (tests.TestsResult, error) {
 		dockerArgs = append(dockerArgs, hostPath+":"+containerPath)
 	}
 
-	dockerArgs = append(dockerArgs, "--name")
-	dockerArgs = append(dockerArgs, d.Name)
-	dockerArgs = append(dockerArgs, d.Name)
+	dockerArgs = append(dockerArgs, "--name", d.Name, d.Name)
 	if d.Command != "" {
 		c := strings.Fields(d.Command)
 		dockerArgs = append(dockerArgs, c...)
@@ -79,9 +75,7 @@ func (d *DockerTest) Run(e tests.TestEnv) (tests.TestsResult, error) {
 
 	if d.Exec != "" {
 		dockerArgs = []string{}
-		dockerArgs = append(dockerArgs, "exec")
-		dockerArgs = append(dockerArgs, "-i")
-		dockerArgs = append(dockerArgs, d.Name)
+		dockerArgs = append(dockerArgs, "exec", "-i", d.Name)
 		dockerArgs = append(dockerArgs, strings.Fields(d.Exec)...)
 		err = s.Command("docker", dockerArgs).SetTimeout(d.Timeout).Run()
 		if err != nil {
@@ -91,7 +85,7 @@ func (d *DockerTest) Run(e tests.TestEnv) (tests.TestsResult, error) {
 	return result, nil
 }
 
-func (d *DockerTest) TearDown() error {
+func (d *Test) TearDown() error {
 	fmt.Println("Running teardown")
 	s := sh.NewSession()
 	s.PipeFail = true
@@ -103,10 +97,10 @@ func (d *DockerTest) TearDown() error {
 	}
 	return nil
 }
-func (d *DockerTest) ID() string {
+func (d *Test) ID() string {
 	return d.Name
 }
 
-func (d *DockerTest) AddVolume(v ContainerVolume) {
+func (d *Test) AddVolume(v ContainerVolume) {
 	d.volumes = append(d.volumes, v)
 }

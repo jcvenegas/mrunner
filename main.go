@@ -17,7 +17,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type ContainerWorkload struct {
+type containerWorkload struct {
 	Name           string
 	Command        string
 	Exec           string
@@ -25,50 +25,48 @@ type ContainerWorkload struct {
 	TimeoutMinutes int
 }
 
-type TestFile struct {
+type testFile struct {
 	ContainerEngine   string
 	RuntimeConfigs    []tests.RuntimeConfig
-	ContainerWorkload ContainerWorkload
+	ContainerWorkload containerWorkload
 }
 
 func runWorkload(yamlFile string) error {
 	dat, err := ioutil.ReadFile(yamlFile)
 	if err != nil {
-		fmt.Errorf("Failed to read yaml file %q %w", yamlFile, err)
-		return err
+		return fmt.Errorf("failed to read yaml file %q %w", yamlFile, err)
 	}
 
 	yamlFileDir := path.Dir(yamlFile)
 	yamlFileDir, err = filepath.Abs(yamlFileDir)
 	if err != nil {
-		fmt.Errorf("Failed to find abs dir for yaml file %w", err)
-		return err
+		return fmt.Errorf("failed to find abs dir for yaml file %w", err)
 	}
 
-	testFile := TestFile{}
+	tf := testFile{}
 
-	err = yaml.Unmarshal(dat, &testFile)
+	err = yaml.Unmarshal(dat, &tf)
 	if err != nil {
 		return err
 	}
 
-	dfilePath := testFile.ContainerWorkload.DockerFilePath
+	dfilePath := tf.ContainerWorkload.DockerFilePath
 	if !path.IsAbs(dfilePath) {
 		dfilePath = path.Join(yamlFileDir, dfilePath)
 	}
 
-	t := dtests.DockerTest{
-		Name:           testFile.ContainerWorkload.Name,
-		Command:        testFile.ContainerWorkload.Command,
-		Exec:           testFile.ContainerWorkload.Exec,
+	t := dtests.Test{
+		Name:           tf.ContainerWorkload.Name,
+		Command:        tf.ContainerWorkload.Command,
+		Exec:           tf.ContainerWorkload.Exec,
 		DockerFilePath: dfilePath,
-		Timeout:        time.Duration(testFile.ContainerWorkload.TimeoutMinutes) * time.Minute,
+		Timeout:        time.Duration(tf.ContainerWorkload.TimeoutMinutes) * time.Minute,
 	}
 
 	v := dtests.TestWorkDirVolume{ContainerShare: "/output"}
 	t.AddVolume(v)
 
-	rs, err := tests.RunTestForKataConfigs(&t, testFile.RuntimeConfigs)
+	rs, err := tests.RunTestForKataConfigs(&t, tf.RuntimeConfigs)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err)
 		return err
@@ -79,16 +77,15 @@ func runWorkload(yamlFile string) error {
 	}
 
 	return nil
-
 }
 
 func createTemplate() error {
-	tf := TestFile{}
+	tf := testFile{}
 
 	tf.ContainerEngine = "docker"
 	dockerfileName := "Dockerfile"
 
-	tf.ContainerWorkload = ContainerWorkload{
+	tf.ContainerWorkload = containerWorkload{
 		Name:           "example",
 		Command:        "sleep infinity",
 		Exec:           "echo hello",
@@ -135,13 +132,13 @@ func createTemplate() error {
 	}
 
 	yamlPath := path.Join(workloadDir, "example.yaml")
-	err = ioutil.WriteFile(yamlPath, out, 0644)
+	err = ioutil.WriteFile(yamlPath, out, 0600)
 	if err != nil {
 		return err
 	}
 
 	dockerfilePath := path.Join(workloadDir, dockerfileName)
-	err = ioutil.WriteFile(dockerfilePath, []byte("FROM busybox"), 0644)
+	err = ioutil.WriteFile(dockerfilePath, []byte("FROM busybox"), 0600)
 	if err != nil {
 		return err
 	}
@@ -149,7 +146,6 @@ func createTemplate() error {
 }
 
 func main() {
-
 	app := &cli.App{}
 	app.Name = "mrunner"
 	app.Usage = "Run container workloads for diffent kata configs"
@@ -168,7 +164,7 @@ func main() {
 			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
 				if c.Args().First() == "" {
-					return errors.New("Missing workload file")
+					return errors.New("missing workload file")
 				}
 				return runWorkload(c.Args().First())
 			},
@@ -180,5 +176,4 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
 }

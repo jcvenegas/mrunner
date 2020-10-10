@@ -9,13 +9,13 @@ type TestEnv struct {
 	Runtime string
 }
 
-type TestsResult struct {
+type Result struct {
 	Error    error
 	Duration time.Duration
 	TestID   string
 }
 
-func (t *TestsResult) SetError(err error) {
+func (t *Result) SetError(err error) {
 	if err == nil {
 		t.Error = err
 	}
@@ -23,7 +23,7 @@ func (t *TestsResult) SetError(err error) {
 
 type Test interface {
 	Setup() error
-	Run(TestEnv) (TestsResult, error)
+	Run(TestEnv) (Result, error)
 	TearDown() error
 	ID() string
 }
