@@ -9,3 +9,6 @@ example: build-in-docker
 
 build-in-docker:
 	docker run --rm -v "$$PWD":/usr/src/myapp -w /usr/src/myapp golang:1.14 go build -v
+
+lint:
+	docker run --rm -v $$PWD:/app -w /app golangci/golangci-lint:v1.31.0 golangci-lint run -v
