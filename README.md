@@ -2,8 +2,7 @@
 
 ## Install docker
 ```bash
-curl -fsSL https://get.docker.com -o get-docker.sh
-sh get-docker.sh
+./scripts/install-docker.sh
 ```
 
 ## Install other deps
