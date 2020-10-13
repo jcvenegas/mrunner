@@ -13,7 +13,8 @@ import (
 type Test struct {
 	Name           string
 	Command        string
-	Exec           string
+	Exec           []string
+	PreExec        []string
 	DockerFilePath string
 	volumes        []ContainerVolume
 	Timeout        time.Duration
@@ -73,13 +74,24 @@ func (d *Test) Run(e tests.TestEnv) (tests.Result, error) {
 		return result, err
 	}
 
-	if d.Exec != "" {
-		dockerArgs = []string{}
-		dockerArgs = append(dockerArgs, "exec", "-i", d.Name)
-		dockerArgs = append(dockerArgs, strings.Fields(d.Exec)...)
-		err = s.Command("docker", dockerArgs).SetTimeout(d.Timeout).Run()
-		if err != nil {
-			result.SetError(err)
+	for _, e := range d.PreExec {
+		if e != "" {
+			pexecCmd := []string{"-c", e}
+			err = s.Command("bash", pexecCmd).SetTimeout(d.Timeout).Run()
+			if err != nil {
+				result.SetError(err)
+			}
+		}
+	}
+	for _, e := range d.Exec {
+		if e != "" {
+			dockerArgs = []string{}
+			dockerArgs = append(dockerArgs, "exec", "-i", d.Name)
+			dockerArgs = append(dockerArgs, strings.Fields(e)...)
+			err = s.Command("docker", dockerArgs).SetTimeout(d.Timeout).Run()
+			if err != nil {
+				result.SetError(err)
+			}
 		}
 	}
 	return result, nil

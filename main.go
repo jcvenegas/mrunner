@@ -20,7 +20,8 @@ import (
 type containerWorkload struct {
 	Name           string
 	Command        string
-	Exec           string
+	PreExec        []string
+	Exec           []string
 	DockerFilePath string
 	TimeoutMinutes int
 }
@@ -55,10 +56,15 @@ func runWorkload(yamlFile string) error {
 		dfilePath = path.Join(yamlFileDir, dfilePath)
 	}
 
+	if len(tf.ContainerWorkload.Exec) == 0 {
+		return errors.New("Exec list for workload is empty")
+	}
+
 	t := dtests.Test{
 		Name:           tf.ContainerWorkload.Name,
 		Command:        tf.ContainerWorkload.Command,
 		Exec:           tf.ContainerWorkload.Exec,
+		PreExec:        tf.ContainerWorkload.PreExec,
 		DockerFilePath: dfilePath,
 		Timeout:        time.Duration(tf.ContainerWorkload.TimeoutMinutes) * time.Minute,
 	}
@@ -86,9 +92,14 @@ func createTemplate() error {
 	dockerfileName := "Dockerfile"
 
 	tf.ContainerWorkload = containerWorkload{
-		Name:           "example",
-		Command:        "sleep infinity",
-		Exec:           "echo hello",
+		Name:    "example",
+		Command: "sleep infinity",
+		PreExec: []string{
+			"echo 3 > /proc/sys/vm/drop_caches",
+		},
+		Exec: []string{
+			"echo hello",
+		},
 		DockerFilePath: dockerfileName,
 		TimeoutMinutes: 10,
 	}

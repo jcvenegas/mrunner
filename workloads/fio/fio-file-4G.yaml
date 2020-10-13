@@ -20,6 +20,9 @@ runtimeconfigs:
 containerworkload:
   name: large-files-4gb
   command: ""
-  exec: fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=4G --readwrite=randrw --rwmixread=75 --output=/output/fio.txt
+  preexec:
+    - echo 3 > /proc/sys/vm/drop_caches
+  exec:
+  - fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=4G --readwrite=randrw --rwmixread=75 --output=/output/fio.txt
   dockerfilepath: dockerfile/Dockerfile
   timeoutminutes: 25

@@ -197,6 +197,8 @@ func saveVirtiofsdCmd(r runtime.DockerRuntime) error {
 	switch r.RuntimeType {
 	case runtime.KataClh, runtime.KataQemuVirtiofs:
 	case runtime.Runc, runtime.KataQemu:
+		fmt.Printf("runtime %s has not virtiofsd\n", r.RuntimeType)
+		return nil
 	default:
 		fmt.Printf("runtime %s has not virtiofsd\n", r.RuntimeType)
 		return nil
