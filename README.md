@@ -19,7 +19,7 @@ Or
 ## Install kata (using kata-deploy)
 
 ```bash
-./scripts/setup-ubuntu.sh
+./scripts/install-kata-deploy.sh
 ```
 
 ```bash
