@@ -5,17 +5,18 @@ set -e
 git clone https://github.com/jcvenegas/mrunner.git || true
 cd mrunner/workloads/fio/dockerfile
 
+docker rm -f large-files-4gb || true
 # Running runc
 docker build -f Dockerfile -t large-files-4gb .
 docker run -dti --runtime runc --name large-files-4gb large-files-4gb
-bash -c 'echo 3 > /proc/sys/vm/drop_caches'
+sudo bash -c 'echo 3 > /proc/sys/vm/drop_caches'
 docker exec -i large-files-4gb fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=4G --readwrite=randrw --rwmixread=75 
 docker rm -f large-files-4gb
 
 # Running kata-runtime
 docker build -f Dockerfile -t large-files-4gb .
 docker run -dti --runtime kata-runtime  --name large-files-4gb large-files-4gb
-bash -c 'echo 3 > /proc/sys/vm/drop_caches'
+sudo bash -c 'echo 3 > /proc/sys/vm/drop_caches'
 docker exec -i large-files-4gb fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=4G --readwrite=randrw --rwmixread=75 
 docker rm -f large-files-4gb
 
