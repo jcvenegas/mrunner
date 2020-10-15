@@ -1,5 +1,7 @@
 containerengine: docker
 runtimeconfigs:
+- runtime: runc
+- runtime: kata-runtime
 - runtime: kata-qemu-virtiofs
   hypervisorconfigs:
     cachetypes:
