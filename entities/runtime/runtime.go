@@ -44,13 +44,14 @@ const (
 	KataClh          DockerRuntimeType = "kata-clh"
 	KataQemu         DockerRuntimeType = "kata-qemu"
 	KataQemuVirtiofs DockerRuntimeType = "kata-qemu-virtiofs"
+	KataRuntime      DockerRuntimeType = "kata-runtime"
 	Runc             DockerRuntimeType = "runc"
 )
 
 func NewDockerRuntime(runtime string) (DockerRuntime, error) {
 	RuntimeType := DockerRuntimeType(runtime)
 	switch RuntimeType {
-	case KataClh, KataQemu, KataQemuVirtiofs, Runc:
+	case KataClh, KataQemu, KataQemuVirtiofs, KataRuntime, Runc:
 		return DockerRuntime{RuntimeType: RuntimeType}, nil
 	}
 	return DockerRuntime{}, fmt.Errorf("unknown config: %s", runtime)
@@ -64,6 +65,8 @@ func (dr *DockerRuntime) ConfigPath() (string, error) {
 		return "/opt/kata/share/defaults/kata-containers/configuration-qemu.toml", nil
 	case KataQemuVirtiofs:
 		return "/opt/kata/share/defaults/kata-containers/configuration-qemu-virtiofs.toml", nil
+	case KataRuntime:
+		return "/usr/share/defaults/kata-containers/configuration.toml", nil
 	case Runc:
 		return "", fmt.Errorf("no config file for runc")
 	default:
@@ -102,7 +105,7 @@ func (dr *DockerRuntime) HypervisorConfigKey() (string, error) {
 	switch dr.RuntimeType {
 	case KataClh:
 		return hypervisorKey + "clh", nil
-	case KataQemu, KataQemuVirtiofs:
+	case KataQemu, KataQemuVirtiofs, KataRuntime:
 		return hypervisorKey + "qemu", nil
 	case Runc:
 		return "", fmt.Errorf("runc does not have hypervisor")
@@ -122,9 +125,12 @@ func (dr *DockerRuntime) RuntimePath() (string, error) {
 		runtimeBinName = "kata-qemu"
 	case KataQemuVirtiofs:
 		runtimeBinName = "kata-qemu-virtiofs"
+	case KataRuntime:
+		prefixPath = "/usr/local/bin"
+		runtimeBinName = "kata-runtime"
 	case Runc:
 	default:
-		return "", fmt.Errorf("failed to find HypervisorConfigKey for %s", dr.RuntimeType)
+		return "", fmt.Errorf("failed to find path for %s", dr.RuntimeType)
 	}
 
 	return path.Join(prefixPath, runtimeBinName), nil

@@ -101,7 +101,7 @@ func testConfigIDArgs(r runtime.DockerRuntime, k runtime.Config) []string {
 	idArgs := []string{}
 
 	if r.RuntimeType == runtime.Runc {
-		return append(idArgs, "runc")
+		return append(idArgs, "runtime","runc")
 	}
 
 	virtiofsArgsID := strings.Replace(k.Hypervisor.VirtiofsdArgs, " ", "", -1)
@@ -161,7 +161,7 @@ func saveHypervisorCmd(r runtime.DockerRuntime) error {
 	switch r.RuntimeType {
 	case runtime.KataClh:
 		hypervisorRegex = "[c]loud-hypervisor"
-	case runtime.KataQemu, runtime.KataQemuVirtiofs:
+	case runtime.KataQemu, runtime.KataQemuVirtiofs, runtime.KataRuntime:
 		hypervisorRegex = "[q]emu-"
 	case runtime.Runc:
 		// Runc does not have command to save
