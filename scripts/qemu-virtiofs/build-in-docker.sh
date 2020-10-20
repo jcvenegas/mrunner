@@ -13,9 +13,9 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOCKER_CLI="docker"
 
 # Qemu repository
-qemu_virtiofs_repo="https://gitlab.com/virtio-fs/qemu.git"
+qemu_virtiofs_repo="${QEMU_VIRTIOFS_REPO:-https://github.com/qemu/qemu}"
 # This tag will be supported on the runtime versions.yaml
-qemu_virtiofs_tag="qemu5.0-virtiofs-with51bits-dax"
+qemu_virtiofs_tag="${QEMU_VIRTIOFS_TAG:-v5.0.0}"
 # Name for binary tarball
 qemu_virtiofs_tar="kata-qemu.tar.gz"
 
