@@ -17,7 +17,7 @@ qemu_virtiofs_repo="https://gitlab.com/virtio-fs/qemu.git"
 # This tag will be supported on the runtime versions.yaml
 qemu_virtiofs_tag="qemu5.0-virtiofs-with51bits-dax"
 # Name for binary tarball
-qemu_virtiofs_tar="kata-static-qemu-virtiofsd.tar.gz"
+qemu_virtiofs_tar="kata-qemu.tar.gz"
 
 echo "Build ${qemu_virtiofs_repo} tag: ${qemu_virtiofs_tag}"
 

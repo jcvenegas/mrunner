@@ -4,7 +4,7 @@ docker-build:
 	"$(MK_DIR)/build-in-docker.sh"
 
 install:
-	tar xf kata-static-qemu-virtiofsd.tar.gz -C /
+	tar xf kata-qemu.tar.gz -C /
 
 clean:
 	rm -f kata-qemu-static.tar.gz
