@@ -60,7 +60,11 @@ patch_repo() {
 
 build() {
 	# Configure qemu build
-	PREFIX="${PREFIX}" "${script_dir}/configure-hypervisor.sh" kata-qemu | xargs ./configure \
+	static_flag=""
+	if [ "${STATIC_BUILD}" == "true" ]; then
+		static_flag="-s"
+	fi
+	PREFIX="${PREFIX}" "${script_dir}/configure-hypervisor.sh" ${static_flag} kata-qemu-carlos | xargs ./configure \
 		--with-pkgversion=kata-qemu-virtiofs
 
 	# Build

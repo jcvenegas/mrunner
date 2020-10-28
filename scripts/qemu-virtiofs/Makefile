@@ -4,7 +4,7 @@ docker-build:
 	"$(MK_DIR)/build-in-docker.sh"
 
 install:
-	tar xf kata-qemu.tar.gz -C /
+	tar xvf kata-qemu.tar.gz -C /
 
 clean:
-	rm -f kata-qemu-static.tar.gz
+	rm -f kata-qemu.tar.gz

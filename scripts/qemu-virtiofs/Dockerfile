@@ -10,6 +10,8 @@ ARG QEMU_VIRTIOFS_TAG
 ARG QEMU_TARBALL
 # Prefix where to install qemu
 ARG PREFIX
+# Build static
+ARG STATIC_BUILD
 
 WORKDIR /root/
 
@@ -31,4 +33,4 @@ ADD patches /root/qemu-virtiofs/patches
 # Build
 ADD build_scripts/build.sh /root/build_scripts
 ADD build_scripts/configure-hypervisor.sh /root/build_scripts
-RUN /root/build_scripts/build.sh
+RUN bash -x /root/build_scripts/build.sh
