@@ -69,7 +69,6 @@ build() {
 
 	# Build
 	make -j$(nproc)
-	make -j$(nproc) virtiofsd
 
 	# Install in dest dir
 	make install DESTDIR=/tmp/qemu-virtiofs-static
