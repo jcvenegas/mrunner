@@ -13,6 +13,7 @@ set -o nounset
 set -o pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STATIC_BUILD=${STATIC_BUILD:-true}
 
 checks() {
 	QEMU_VIRTIOFS_TAG=${QEMU_VIRTIOFS_TAG:-}
@@ -69,6 +70,7 @@ build() {
 
 	# Build
 	make -j$(nproc)
+	make -j$(nproc) virtiofsd
 
 	# Install in dest dir
 	make install DESTDIR=/tmp/qemu-virtiofs-static
@@ -84,6 +86,5 @@ build() {
 }
 
 checks
-set -x
 patch_repo
 build

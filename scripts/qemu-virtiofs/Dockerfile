@@ -24,7 +24,7 @@ RUN ./build_scripts/install_deps.sh
 
 # Get qemu-virtiofs code
 ADD build_scripts/clone_qemu.sh /root/build_scripts
-RUN ./build_scripts/clone_qemu.sh
+RUN bash -x ./build_scripts/clone_qemu.sh
 WORKDIR /root/qemu-virtiofs
 
 # Add patches

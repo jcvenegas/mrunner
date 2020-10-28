@@ -25,6 +25,8 @@ apt-get --no-install-recommends install -y \
 	    libmount-dev \
 	    libpixman-1-dev \
 	    libpmem-dev \
+	    libseccomp-dev \
+	    libseccomp2 \
 	    libselinux1-dev \
 	    libtool \
 	    make \

@@ -30,7 +30,7 @@ qemu_rh_dyn(){
 	export STATIC_BUILD="false"
 	build_qemu
 
-	${script_di}/fio_4g.sh | tee log-rh-dyn
+	${script_dir}/fio_4g.sh | tee log-rh-dyn
 }
 
 qemu_rh_static(){
