@@ -10,6 +10,7 @@ export QEMU_VIRTIOFS_REPO="https://gitlab.com/virtio-fs/qemu.git"
 export QEMU_VIRTIOFS_TAG="qemu5.0-virtiofs-with51bits-dax"
 #
 export PREFIX=/opt/kata
+# use dynamic build as will be installed on host
 export STATIC_BUILD=false
 export QEMU_TARBALL="kata-qemu.tar.gz"
 

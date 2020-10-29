@@ -44,19 +44,32 @@ checks() {
 }
 
 patch_repo() {
-	ls ./patches/
-	ls ./patches/5.0.x/
-	ls ./patches/qemu5.0-virtiofs-with51bits-dax/
-	find "${qemu_virtiofs_patches_dir}" -name '*.patch' -type f | sort -t- -k1,1n >patches_virtiofs
+	qemu_version="$(cat VERSION)"
+	stable_branch=$(echo $qemu_version | \
+		awk 'BEGIN{FS=OFS="."}{print $1 "." $2 ".x"}')
+	patches_dir_base="./patches"
 
-	echo "Patches to apply for virtiofs tree:"
-	cat "patches_virtiofs"
-	[ ! -s "patches_virtiofs" ] || git apply $(cat "patches_virtiofs")
+	patches_dir_stable="${patches_dir_base}/${stable_branch}"
+	echo "Handle patches for QEMU $qemu_version (stable ${stable_branch}) in ${patches_dir_stable}"
+	if [ -d $patches_dir_stable ]; then
+		for patch in $(find $patches_dir_stable -name '*.patch'); do
+			echo "Apply $patch"
+			git apply "$patch"
+		done
+	else
+		echo "No patches to apply"
+	fi
 
-	find "${qemu_patches_dir}" -name '*.patch' -type f | sort -t- -k1,1n >"patches_qemu"
-	echo "Patches to apply for qemu:"
-	cat "patches_qemu"
-	[ ! -s "patches_qemu" ] || git apply $(cat "patches_qemu")
+	patches_dir_tag="${patches_dir_base}/${QEMU_VIRTIOFS_TAG}"
+	echo "Handle patches for QEMU tag $QEMU_VIRTIOFS_TAG in ${qemu_virtiofs_patches_dir}"
+	if [ -d "$patches_dir_tag" ] && [ "${QEMU_VIRTIOFS_TAG}" != "" ] ; then
+		for patch in $(find $patches_dir_tag -name '*.patch'); do
+			echo "Apply $patch"
+			git apply "$patch"
+		done
+	else
+		echo "No patches to apply"
+	fi
 }
 
 build() {

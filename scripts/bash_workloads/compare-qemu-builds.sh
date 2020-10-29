@@ -28,7 +28,7 @@ qemu_rh_dyn(){
 	export QEMU_VIRTIOFS_REPO="https://gitlab.com/virtio-fs/qemu"
 	export QEMU_VIRTIOFS_TAG="qemu5.0-virtiofs-with51bits-dax"
 	export STATIC_BUILD="false"
-	build_qemu
+	build_qemu | tee qemu-buld-dyn
 
 	${script_dir}/fio_4g.sh | tee log-rh-dyn
 }
@@ -37,7 +37,7 @@ qemu_rh_static(){
 	export QEMU_VIRTIOFS_REPO="https://gitlab.com/virtio-fs/qemu"
 	export QEMU_VIRTIOFS_TAG="qemu5.0-virtiofs-with51bits-dax"
 	export STATIC_BUILD="true"
-	build_qemu | tee qemu-build
+	build_qemu | tee qemu-build-static
 
 	${script_dir}/fio_4g.sh | tee log-rh-static
 }
