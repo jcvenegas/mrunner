@@ -32,6 +32,7 @@ qemu_rh_dyn(){
 	export STATIC_BUILD="false"
 	build_qemu | tee qemu-buld-dyn
 
+	sudo /opt/kata/bin/kata-qemu-virtiofs kata-env > kata-qemu-virtiofs-dny-env
 	${script_dir}/fio_4g.sh | tee log-rh-dyn
 }
 
@@ -41,6 +42,7 @@ qemu_rh_static(){
 	export STATIC_BUILD="true"
 	build_qemu | tee qemu-build-static
 
+	sudo /opt/kata/bin/kata-qemu-virtiofs kata-env > kata-qemu-virtiofs-static-env
 	${script_dir}/fio_4g.sh | tee log-rh-static
 }
 
