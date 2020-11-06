@@ -5,9 +5,9 @@ set -o nounset
 set -o pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export QEMU_VIRTIOFS_REPO="https://gitlab.com/virtio-fs/qemu.git"
-# This tag will be supported on the runtime versions.yaml
-export QEMU_VIRTIOFS_TAG="qemu5.0-virtiofs-with51bits-dax"
+source "${script_dir}/qemu_version.sh"
+QEMU_VIRTIOFS_REPO="$(get_qemu_repo)"
+QEMU_VIRTIOFS_TAG="$(get_qemu_version)"
 #
 export PREFIX=/opt/kata
 # use dynamic build as will be installed on host

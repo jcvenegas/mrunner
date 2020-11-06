@@ -1,4 +1,6 @@
-FROM ubuntu:20.04
+ARG IMAGE=ubuntu
+ARG TAG=20.04
+FROM ${IMAGE}:${TAG}
 
 # Args
 #-----------------------------
@@ -7,11 +9,11 @@ ARG QEMU_VIRTIOFS_REPO
 # commit/tag/branch
 ARG QEMU_VIRTIOFS_TAG
 # Name of the binary tarball
-ARG QEMU_TARBALL
+ARG QEMU_TARBALL=qemu.targ.gz
 # Prefix where to install qemu
-ARG PREFIX
+ARG PREFIX=/opt/virtiofs
 # Build static
-ARG STATIC_BUILD
+ARG STATIC_BUILD=true
 
 WORKDIR /root/
 

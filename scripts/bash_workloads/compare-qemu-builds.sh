@@ -10,52 +10,46 @@ script_dir=$(dirname "$(readlink -f "$0")")
 build_qemu(){
 	(
 	cd "${script_dir}/../qemu-virtiofs"
-	sudo rm -f "/opt/kata/bin/qemu-virtiofs-system-x86_64"
-	sudo rm -f "/opt/kata/bin/virtiofsd"
+	sudo rm -rf "/opt/virtiofs/"
 	make clean
 	make
 	sudo make install
 
-	sudo crudini --set --existing /opt/kata/share/defaults/kata-containers/configuration-qemu-virtiofs.toml hypervisor.qemu path '"/opt/kata/bin/qemu-virtiofs-system-x86_64"'
+	#kata-virtiofs
+	sudo crudini --set --existing /opt/kata/share/defaults/kata-containers/configuration-qemu-virtiofs.toml hypervisor.qemu path '"/opt/virtiofs/bin/qemu-virtiofs-system-x86_64"'
+	sudo crudini --set --existing /opt/kata/share/defaults/kata-containers/configuration-qemu-virtiofs.toml hypervisor.qemu virtio_fs_daemon '"/opt/virtiofs/bin/virtiofsd"'
 
-	sudo crudini --set --existing /opt/kata/share/defaults/kata-containers/configuration-qemu.toml hypervisor.qemu path '"/opt/kata/bin/qemu-virtiofs-system-x86_64"'
-	sudo /opt/kata/bin/kata-qemu-virtiofs > kata-qemu-virtiofs-env
+
+	#kata-qemu
+	sudo crudini --set --existing /opt/kata/share/defaults/kata-containers/configuration-qemu.toml hypervisor.qemu path '"/opt/virtiofs/bin/qemu-virtiofs-system-x86_64"'
+
 	)
+	cp /opt/virtiofs/share/applied_patches log-applied-patches
 }
 
-
-
-
 qemu_rh_dyn(){
-	export QEMU_VIRTIOFS_REPO="https://gitlab.com/virtio-fs/qemu"
-	export QEMU_VIRTIOFS_TAG="qemu5.0-virtiofs-with51bits-dax"
 	export STATIC_BUILD="false"
-	build_qemu | tee qemu-buld-dyn
-
-	sudo /opt/kata/bin/kata-qemu-virtiofs kata-env > kata-qemu-virtiofs-dny-env
+	build_qemu 2>&1| tee log-qemu-buld-dyn
 	${script_dir}/fio_4g.sh | tee log-rh-dyn
 }
 
 qemu_rh_static(){
-	export QEMU_VIRTIOFS_REPO="https://gitlab.com/virtio-fs/qemu"
-	export QEMU_VIRTIOFS_TAG="qemu5.0-virtiofs-with51bits-dax"
 	export STATIC_BUILD="true"
-	build_qemu | tee qemu-build-static
-
-	sudo /opt/kata/bin/kata-qemu-virtiofs kata-env > kata-qemu-virtiofs-static-env
+	build_qemu 2>&1| tee log-qemu-build-static
 	${script_dir}/fio_4g.sh | tee log-rh-static
 }
 
 default_qemu(){
 	sudo crudini --set --existing /opt/kata/share/defaults/kata-containers/configuration-qemu-virtiofs.toml hypervisor.qemu path '"/opt/kata/bin/qemu-system-x86_64"'
 	sudo crudini --set --existing /opt/kata/share/defaults/kata-containers/configuration-qemu.toml hypervisor.qemu path '"/opt/kata/bin/qemu-system-x86_64"'
-	sudo /opt/kata/bin/kata-qemu > kata-qemu-env
-	./fio_4g.sh | tee log-qemu-default
+	${script_dir}/fio_4g.sh | tee log-qemu-default
 }
 
-
 set -x
-qemu_rh_static
-default_qemu
 
+results_dir_name="${1:-results}"
+mkdir -p "${results_dir_name}"
+cd "${results_dir_name}"
+qemu_rh_static
+#default_qemu
 bash ${script_dir}/get-results.sh

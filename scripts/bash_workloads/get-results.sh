@@ -1,3 +1,3 @@
 #!/bin/bash
 
-find . -name 'log-*' -exec echo {} \; -exec grep -P 'READ|WRITE|case' {} \;
+find . -name 'fio-results-*' -exec echo {} \; -exec grep -P 'READ|WRITE|case' {} \;

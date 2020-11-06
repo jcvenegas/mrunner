@@ -14,6 +14,7 @@ set -o pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATIC_BUILD=${STATIC_BUILD:-true}
+BUILD_NAME="qemu-for-kata"
 
 checks() {
 	QEMU_VIRTIOFS_TAG=${QEMU_VIRTIOFS_TAG:-}
@@ -44,6 +45,7 @@ checks() {
 }
 
 patch_repo() {
+	echo "" > applied_patches
 	qemu_version="$(cat VERSION)"
 	stable_branch=$(echo $qemu_version | \
 		awk 'BEGIN{FS=OFS="."}{print $1 "." $2 ".x"}')
@@ -54,6 +56,7 @@ patch_repo() {
 	if [ -d $patches_dir_stable ]; then
 		for patch in $(find $patches_dir_stable -name '*.patch'); do
 			echo "Apply $patch"
+			echo "${patch}" >> applied_patches
 			git apply "$patch"
 		done
 	else
@@ -65,6 +68,7 @@ patch_repo() {
 	if [ -d "$patches_dir_tag" ] && [ "${QEMU_VIRTIOFS_TAG}" != "" ] ; then
 		for patch in $(find $patches_dir_tag -name '*.patch'); do
 			echo "Apply $patch"
+			echo "${patch}" >> applied_patches
 			git apply "$patch"
 		done
 	else
@@ -78,24 +82,27 @@ build() {
 	if [ "${STATIC_BUILD}" == "true" ]; then
 		static_flag="-s"
 	fi
-	PREFIX="${PREFIX}" "${script_dir}/configure-hypervisor.sh" ${static_flag} kata-qemu-carlos | xargs ./configure \
+	export CFLAGS+="-Wno-error"
+	PREFIX="${PREFIX}" "${script_dir}/configure-hypervisor.sh" ${static_flag} "${BUILD_NAME}" | xargs ./configure \
 		--with-pkgversion=kata-qemu-virtiofs
 
 	# Build
 	make -j$(nproc)
-	make -j$(nproc) virtiofsd
 
 	# Install in dest dir
-	make install DESTDIR=/tmp/qemu-virtiofs-static
+	destdir=/tmp/qemu-virtiofs-static
+	make install DESTDIR="${destdir}"
 
 	# Rename qemu binary to avoid collition wiht other builds
-	mv /tmp/qemu-virtiofs-static/"${PREFIX}"/bin/qemu-system-x86_64 /tmp/qemu-virtiofs-static/"${PREFIX}"/bin/qemu-virtiofs-system-x86_64
+	mv "${destdir}/${PREFIX}"/bin/qemu-system-x86_64 "${destdir}/${PREFIX}"/bin/qemu-virtiofs-system-x86_64
 
 	# Install virtiofsd
-	chmod +x virtiofsd && mv virtiofsd /tmp/qemu-virtiofs-static/opt/kata/bin/
+	cp "${destdir}/${PREFIX}/libexec/${BUILD_NAME}/virtiofsd" "${destdir}/${PREFIX}/bin"
 
+	# Save applied patches
+	cp applied_patches "${destdir}/${PREFIX}/share"
 	# Create a tarball with binaries
-	cd /tmp/qemu-virtiofs-static && tar -czvf "${QEMU_TARBALL}" *
+	cd "${destdir}" && tar -czvf "${QEMU_TARBALL}" *
 }
 
 checks

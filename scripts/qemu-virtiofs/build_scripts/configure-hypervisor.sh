@@ -398,6 +398,12 @@ generate_qemu_options() {
 	# Support Ceph RADOS Block Device (RBD)
 	#qemu_options+=(functionality:--denable-rbd)
 
+	# Support virtiofsd build
+	qemu_options+=(functionality:--enable-virtiofsd)
+	# Required by virtiofs
+	qemu_options+=(functionality:--enable-tools)
+
+
 	# In "passthrough" security mode
 	# (-fsdev "...,security_model=passthrough,..."), qemu uses a helper
 	# application called virtfs-proxy-helper(1) to make certain 9p

@@ -30,9 +30,11 @@ apt-get --no-install-recommends install -y \
 	    libselinux1-dev \
 	    libtool \
 	    make \
+	    ninja-build \
 	    pkg-config \
 	    pkg-config \
 	    python \
+	    python3-setuptools \
 	    python-dev \
 	    rsync \
 	    seccomp \
