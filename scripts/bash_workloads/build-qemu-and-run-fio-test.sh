@@ -30,19 +30,19 @@ build_qemu(){
 qemu_rh_dyn(){
 	export STATIC_BUILD="false"
 	build_qemu 2>&1| tee log-qemu-buld-dyn
-	${script_dir}/fio_4g.sh | tee log-rh-dyn
+	${script_dir}/fio_randrw.sh | tee log-rh-dyn
 }
 
 qemu_rh_static(){
 	export STATIC_BUILD="true"
 	build_qemu 2>&1| tee log-qemu-build-static
-	${script_dir}/fio_4g.sh | tee log-rh-static
+	${script_dir}/fio_randrw.sh | tee log-rh-static
 }
 
 default_qemu(){
 	sudo crudini --set --existing /opt/kata/share/defaults/kata-containers/configuration-qemu-virtiofs.toml hypervisor.qemu path '"/opt/kata/bin/qemu-system-x86_64"'
 	sudo crudini --set --existing /opt/kata/share/defaults/kata-containers/configuration-qemu.toml hypervisor.qemu path '"/opt/kata/bin/qemu-system-x86_64"'
-	${script_dir}/fio_4g.sh | tee log-qemu-default
+	${script_dir}/fio_randrw.sh | tee log-qemu-default
 }
 
 set -x
