@@ -12,11 +12,12 @@ LABEL DOCKERFILE_VERSION="1.0"
 #ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-	apt-get install -y fio && \
+	apt-get install -y fio htop && \
 	apt-get remove -y unattended-upgrades
 
 # Pull in our actual worker scripts
 COPY . /scripts
+COPY htoprc /root/.config/htop/htoprc
 
 # By default generate the report
 CMD ["/scripts/init.sh"]

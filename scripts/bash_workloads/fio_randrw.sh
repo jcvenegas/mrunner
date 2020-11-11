@@ -20,7 +20,7 @@ setup(){
 
 
 drop_caches(){
-	sudo bash -c 'echo 3 > /proc/sys/vm/drop_caches'
+	sudo bash -c 'free -h; sync; echo 3 > /proc/sys/vm/drop_caches; free -h;'
 }
 
 docker_rm(){
@@ -110,8 +110,15 @@ run_9pfs(){
 	kata_env "${runtime}" "${suffix}"
 	run_workload "${runtime}" "${suffix}"
 }
+run_runc(){
+	local runtime="runc"
+	local suffix="$(fn_name)"
+
+	run_workload "${runtime}" "${suffix}"
+}
 
 setup
+run_runc
 run_virtiofs_tread_pool_0
 run_virtiofs_tread_pool_1
 run_virtiofs_tread_pool_64
