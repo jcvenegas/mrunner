@@ -20,6 +20,11 @@ WORKDIR /root/
 # Dir to add build scripts
 RUN mkdir /root/build_scripts
 
+ENV http_proxy http://proxy-chain.intel.com:911
+ENV https_proxy http://proxy-chain.intel.com:912
+ENV ftp_proxy http://proxy-chain.intel.com:911
+ENV socks_proxy http://proxy-us.intel.com:1080
+ENV no_proxy intel.com,.intel.com,localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16,172.16.0.0/12
 # Install deps
 ADD build_scripts/install_deps.sh /root/build_scripts
 RUN ./build_scripts/install_deps.sh

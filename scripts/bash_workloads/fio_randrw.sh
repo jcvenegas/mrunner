@@ -8,6 +8,8 @@ set -o errtrace
 script_name=${0##*/}
 script_dir=$(dirname "$(readlink -f "$0")")
 
+test_prefix="fio-results-"
+
 
 setup(){
 	(
@@ -18,17 +20,38 @@ setup(){
 }
 
 
-
 drop_caches(){
-	sudo bash -c 'free -h; sync; echo 3 > /proc/sys/vm/drop_caches; free -h;'
+	echo "info: drop_caches"
+	free -h
+	sync
+	sudo bash -c 'echo 3 > /proc/sys/vm/drop_caches'
+	sleep 3
+	free -h
 }
+
+init_test_log(){
+	test_log_file=${1}
+	echo "Test log started" | tee "${test_log_file}"
+}
+info(){
+	local msg=${1}
+	echo "info: $1" | tee -a "${test_log_file}"
+}
+
 
 docker_rm(){
+	local suffix=${1:-no-suffix}
+	info "docker rm"
 	docker rm -f large-files-4gb
+	drop_caches | tee -a "${test_log_file}"
 }
+
 exec_fio(){
 	log_suffix="${1:-no-suffix}"
-	docker exec -i large-files-4gb fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=200M --readwrite=randrw --rwmixread=75 | tee "fio-results-${log_suffix}"
+	{ time docker exec -i large-files-4gb fio --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=1G --readwrite=randrw --rwmixread=75; } 2>&1 | tee -a "${test_log_file}"
+	info "drop caches after workload"
+	info "caches will be high because VM still running"
+	drop_caches | tee -a "${test_log_file}"
 }
 
 set_base_virtiofs_config(){
@@ -43,8 +66,8 @@ docker_run(){
 	local suffix=${2}
 	echo "case: kata-qemu-virtiofs ${suffix}"
 	docker run -dti --runtime "${runtime}"  --name large-files-4gb large-files-4gb
-	ps aux | grep virtiofsd > "${runtime}-${suffix}-virtiofs_cmd"
-	ps aux | grep qemu > "${runtime}-${suffix}-qemu_cmd"
+	ps aux | grep virtiofsd > "virtiofsd-cmd-${runtime}-${suffix}"
+	ps aux | grep qemu > "qemu-cmd-${runtime}-${suffix}"
 }
 
 fn_name(){
@@ -63,9 +86,10 @@ run_workload(){
 	echo "case: ${runtime} ${suffix}"
 
 	docker_run "${runtime}" "${suffix}"
-	drop_caches
+	init_test_log "${test_prefix}${suffix}"
+	drop_caches | tee "${test_log_file}"
 	exec_fio  "${suffix}"
-	docker_rm
+	docker_rm "${suffix}"
 }
 
 run_virtiofs_tread_pool_0(){
