@@ -9,14 +9,15 @@ script_name=${0##*/}
 script_dir=$(dirname "$(readlink -f "$0")")
 
 test_prefix="fio-results-"
+image_name="fio-container-metrics"
 
 
 setup(){
 	(
 	cd "${script_dir}/../../workloads/fio/dockerfile/"
-	docker build -f Dockerfile -t large-files-4gb .
+	docker build -f Dockerfile -t "${image_name}" .
 	)
-	docker rm -f large-files-4gb || true
+	docker rm -f "${image_name}" || true
 }
 
 
@@ -42,13 +43,13 @@ info(){
 docker_rm(){
 	local suffix=${1:-no-suffix}
 	info "docker rm"
-	docker rm -f large-files-4gb
+	docker rm -f "${image_name}"
 	drop_caches | tee -a "${test_log_file}"
 }
 
 exec_fio(){
 	log_suffix="${1:-no-suffix}"
-	{ time docker exec -i large-files-4gb fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=200M --readwrite=randrw --rwmixread=75; } 2>&1 | tee -a "${test_log_file}"
+	{ time docker exec -i "${image_name}" fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=200M --readwrite=randrw --rwmixread=75; } 2>&1 | tee -a "${test_log_file}"
 	info "drop caches after workload"
 	info "caches will be high because VM still running"
 	drop_caches | tee -a "${test_log_file}"
@@ -65,7 +66,7 @@ docker_run(){
 	local runtime=${1}
 	local suffix=${2}
 	echo "case: kata-qemu-virtiofs ${suffix}"
-	docker run -dti --runtime "${runtime}"  --name large-files-4gb large-files-4gb
+	docker run -dti --runtime "${runtime}"  --name "${image_name}" "${image_name}"
 	ps aux | grep virtiofsd > "virtiofsd-cmd-${runtime}-${suffix}"
 	ps aux | grep qemu > "qemu-cmd-${runtime}-${suffix}"
 }
