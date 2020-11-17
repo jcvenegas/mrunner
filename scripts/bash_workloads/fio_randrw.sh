@@ -48,7 +48,7 @@ docker_rm(){
 
 exec_fio(){
 	log_suffix="${1:-no-suffix}"
-	{ time docker exec -i large-files-4gb fio --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=1G --readwrite=randrw --rwmixread=75; } 2>&1 | tee -a "${test_log_file}"
+	{ time docker exec -i large-files-4gb fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=200M --readwrite=randrw --rwmixread=75; } 2>&1 | tee -a "${test_log_file}"
 	info "drop caches after workload"
 	info "caches will be high because VM still running"
 	drop_caches | tee -a "${test_log_file}"
