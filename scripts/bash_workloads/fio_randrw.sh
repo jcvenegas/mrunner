@@ -10,6 +10,7 @@ script_dir=$(dirname "$(readlink -f "$0")")
 
 test_prefix="fio-results-"
 image_name="fio-container-metrics"
+workload_cmd="missing"
 
 
 setup(){
@@ -18,6 +19,7 @@ setup(){
 	docker build -f Dockerfile -t "${image_name}" .
 	)
 	docker rm -f "${image_name}" || true
+	pwd
 }
 
 
@@ -49,7 +51,8 @@ docker_rm(){
 
 exec_fio(){
 	log_suffix="${1:-no-suffix}"
-	{ time docker exec -i "${image_name}" fio --direct=1 --gtod_reduce=1 --name=test --filename=random_read_write.fio --bs=4k --iodepth=64 --size=200M --readwrite=randrw --rwmixread=75; } 2>&1 | tee -a "${test_log_file}"
+	local workload_cmd=$(cat ${script_dir}/cmd_file)
+	{ time docker exec -i "${image_name}" ${workload_cmd}; } 2>&1 | tee -a "${test_log_file}"
 	info "drop caches after workload"
 	info "caches will be high because VM still running"
 	drop_caches | tee -a "${test_log_file}"
